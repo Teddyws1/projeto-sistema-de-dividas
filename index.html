@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistema Controle de Dívidas com Parcelas Pagas</title>
+
+  <!-- Fonte Google -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* RESET e estilos básicos */
+    * {
+      margin: 0v;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.4s ease, color 0.4s ease;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+
+    }
+
+    :root {
+      --bg: #f9fafb;
+      --bg-card: #fff;
+      --text: #1e293b;
+      --primary: #4f46e5;
+      --secondary: #6366f1;
+      --accent: #2563eb;
+      --input-bg: #fff;
+      --input-border: #cbd5e1;
+      --shadow: rgba(100, 116, 139, 0.1);
+      --btn-hover-shadow: rgba(99, 102, 241, 0.5);
+
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --text: #fffefe;
+      --primary: #818cf8;
+      --secondary: #a5b4fc;
+      --accent: #60a5fa;
+      --input-bg: #334155;
+      --input-border: #475569;
+      --shadow: rgba(30, 41, 59, 0.9);
+      --btn-hover-shadow: rgba(165, 180, 252, 0.5);
+
+    }
+
+    .container {
+      max-width: 9000px;
+      margin: 40px auto 60px;
+      padding: 20px 25px;
+      width: 100vw;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      user-select: none;
+
+    }
+
+    h1 {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 2.2rem;
+
+    }
+
+    /* Botão toggle tema */
+    .btn-toggle {
+      cursor: pointer;
+      background: var(--primary);
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1rem;
+      box-shadow: 0 5px 15px var(--btn-hover-shadow);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: pulseColor 2s infinite;
+
+    }
+
+    .btn-toggle:hover {
+      background: var(--secondary);
+      box-shadow: 0 6px 20px var(--btn-hover-shadow);
+
+    }
+
+    .btn-toggle svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+      transition: transform 0.4s ease;
+    }
+
+    .btn-toggle[data-theme="dark"] svg {
+      transform: rotate(180deg);
+    }
+
+    /* Sistema de abas */
+    nav.tabs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--input-border);
+
+    }
+
+    nav.tabs button {
+      flex: 1;
+      padding: 10px 0;
+      background: transparent;
+      border: none;
+      border-bottom: 4px solid transparent;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.4s ease, color 0.3s ease;
+
+    }
+
+    nav.tabs button.active {
+      border-bottom-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+
+    }
+
+    nav.tabs button:hover:not(.active) {
+      color: var(--secondary);
+    }
+
+    /* Card para conteúdo */
+    .card {
+      background: var(--bg-card);
+      box-shadow: 0 10px 25px var(--shadow);
+      padding: 12px 12px;
+      border-radius: 25px;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+
+    }
+
+    /* Formulário */
+    form label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--text);
+
+    }
+
+    form input[type="text"],
+    form input[type="number"],
+    form input[type="date"],
+    form select,
+    form textarea {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 20px;
+      border: 2px solid var(--input-border);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-weight: 500;
+      outline-offset: 2px;
+      resize: vertical;
+
+    }
+
+    form input[type="text"]::placeholder,
+    form input[type="number"]::placeholder,
+    form input[type="date"]::placeholder,
+    form select:invalid {
+      color: #94a3b8;
+    }
+
+    form input[type="text"]:focus,
+    form input[type="number"]:focus,
+    form input[type="date"]:focus,
+    form select:focus,
+    form textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      outline: none;
+
+    }
+
+    /* Botão submit */
+    form button.submit-btn {
+      background: var(--primary);
+      border: none;
+      color: white;
+      padding: 14px 35px;
+      border-radius: 30px;
+      font-weight: 800;
+      font-size: 1.2rem;
+      cursor: pointer;
+      box-shadow: 0 8px 18px var(--btn-hover-shadow);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+      display: block;
+      margin: 10px auto 0;
+      width: 100%;
+      max-width: 320px;
+      animation: pulseColor 2s infinite;
+    }
+
+    form button.submit-btn:hover {
+      background: var(--secondary);
+      box-shadow: 0 10px 30px var(--btn-hover-shadow);
+      animation: pulseColor 2s infinite;
+    }
+
+    /* Tabela histórico */
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+      font-size: 0.95rem;
+      color: var(--text);
+
+
+    }
+
+    thead tr {
+      background: transparent;
+
+    }
+
+    thead th {
+      text-align: center;
+      padding-bottom: 8px;
+      font-weight: 700;
+      color: var(--primary);
+
+    }
+
+    tbody tr {
+      background: var(--bg-card);
+      box-shadow: 0 4px 14px var(--shadow);
+      border-radius: 15px;
+      transition: background 0.3s ease;
+      cursor: pointer;
+
+    }
+
+    tbody tr:hover {
+      background: var(--secondary);
+      color: white;
+    }
+
+    tbody tr td {
+      padding: 12px 0px;
+      text-align: center;
+      vertical-align: middle;
+      width: 77px;
+      flex-direction: column;
+
+    }
+
+    tbody tr td button {
+      padding: 2px 11px;
+      border-radius: 10px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      margin: 1 9px;
+      transition: filter 0.2s ease;
+      font-size: 0.8rem;
+      height: 30;
+      width: 78px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+    }
+
+    tbody tr td button:hover {
+      filter: brightness(0.8);
+
+    }
+
+    .btn-details {
+      background-color: #2563eb;
+      color: white;
+    }
+
+    .btn-edit-installments {
+      background-color: #10b981;
+      color: white;
+
+    }
+
+    .btn-delete {
+      background-color: #eb0000;
+      color: white;
+
+    }
+
+    /* Modal fundo */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+
+
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    /* Modal conteúdo */
+    .modal {
+      background: var(--bg-card);
+      border-radius: 18px;
+      box-shadow: 0 15px 35px var(--shadow);
+      max-width: 460px;
+      width: 90%;
+      padding: 30px 25px;
+      position: relative;
+      color: var(--text);
+      max-height: 90vh;
+      overflow-y: auto;
+
+    }
+
+    .modal h3 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: var(--primary);
+
+    }
+
+    .modal .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: transparent;
+      border: none;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .modal .close-btn:hover {
+      color: var(--secondary);
+
+    }
+
+    .modal dl {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      gap: 10px 20px;
+
+    }
+
+    .modal dt {
+      font-weight: 700;
+    }
+
+    .modal dd {
+      margin: 0 0 15px 0;
+      word-break: break-word;
+    }
+
+    /* Modal lista parcelas */
+    .installments-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+
+
+    }
+
+    .installments-list li {
+      margin-bottom: 12px;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+    }
+
+    .installments-list label {
+      cursor: pointer;
+      user-select: none;
+
+    }
+
+    .installments-list input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+
+    }
+
+    /* Responsividade */
+    @media (max-width: 600px) {
+      .container {
+        margin: 30px 150px 500px;
+        padding: 15px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      nav.tabs button {
+        font-size: 1rem;
+        padding: 10px 0;
+      }
+
+      form button.submit-btn {
+        max-width: 100%;
+        padding: 14px;
+      }
+
+      table tbody tr td {
+        padding: 10px 6px;
+        font-size: 0.85rem;
+      }
+
+      .modal {
+        max-width: 95%;
+        padding: 20px 15px;
+      }
+
+    }
+
+    /* Screen reader only */
+    #footer {
+      position: fixed;
+      /* Fixa na tela */
+      bottom: 0;
+      /* Colado na parte inferior */
+      left: 0;
+      /* Começa do lado esquerdo */
+      width: 100%;
+      /* Ocupa toda largura */
+      background-color: #ff0000;
+      /* Quadrado vermelho */
+      color: #fff;
+      /* Texto branco */
+      text-align: center;
+      /* Centraliza o texto */
+      padding: 10px 0;
+      /* Espaçamento interno */
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+      /* Sombra leve */
+      z-index: 1000;
+      /* Fica acima de outros elementos */
+
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+
+    }
+
+    .footer {
+
+      background: linear-gradient(to right, #141e30, #243b55);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      padding: 40px 20px 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .footer-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: auto;
+      gap: 20px;
+    }
+
+    .footer-container>div {
+      flex: 1 1 200px;
+
+    }
+
+    .footer h3 {
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      border-bottom: 2px solid #7c2121;
+      display: inline-block;
+      padding-bottom: 4px;
+
+    }
+
+    .footer p,
+    .footer li {
+      font-size: 0.95rem;
+      line-height: 1.6;
+
+    }
+
+    .footer-links ul {
+      list-style: none;
+      padding: 0;
+
+
+    }
+
+    .footer-links li {
+      margin: 6px 0;
+
+
+    }
+
+    .footer-links a {
+      color: #ccc;
+      text-decoration: none;
+      transition: color 0.3s;
+
+    }
+
+    .footer-links a:hover {
+      color: #00bcd4;
+
+    }
+
+    .footer-social .social-icons a {
+      display: inline-block;
+      margin-right: 10px;
+
+    }
+
+    .footer-social img {
+      width: 24px;
+      height: 24px;
+      transition: transform 0.3s;
+    }
+
+    .footer-social img:hover {
+      transform: scale(1.2);
+    }
+
+    .footer-bottom {
+      text-align: center;
+      margin-top: 30px;
+      border-top: 1px solid #444;
+      padding-top: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+
+    }
+
+    @media (max-width: 768px) {
+      .footer-container {
+        flex-direction: column;
+        text-align: center;
+
+      }
+
+      .footer-social .social-icons a {
+        margin: 0 8px;
+
+      }
+    }
+
+    .footer-bottom p {
+      font-weight: 600;
+      font-size: 1rem;
+      text-align: center;
+      color: #292929;
+      transition: color 0.4s ease;
+
+    }
+
+    /* Tema escuro detectado */
+    @media (prefers-color-scheme: dark) {
+      .footer-bottom p {
+        color: #f8f8f8;
+
+
+      }
+
+    }
+
+    /* Rodapé Básico */
+    .footer {
+      padding: 20px;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+
+
+    }
+
+    /* Tema Claro */
+    @media (prefers-color-scheme: light) {
+      .footer {
+        background-color: #f1f1f1;
+        color: #333;
+
+      }
+
+    }
+
+    /* Tema Escuro */
+    @media (prefers-color-scheme: dark) {
+      .footer {
+        background-color: #222;
+        color: #f1f1f1;
+
+      }
+
+    }
+
+    /* Defocus (blur) do conteúdo quando modal ativo */
+    .blur-on-modal {
+      filter: blur(4px);
+      user-select: none;
+      pointer-events: none;
+      transition: filter 0.3s ease;
+
+    }
+
+    footer.footer.blur-on-modal {
+      filter: blur(4px);
+      pointer-events: none;
+      user-select: none;
+
+    }
+
+    #btn-sobre {
+      background-color: #2563eb;
+      /* azul */
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 3px 6px rgba(37, 99, 235, 0.4);
+
+    }
+
+    #btn-sobre:hover {
+      background-color: #1d4ed8;
+      /* azul mais escuro no hover */
+      box-shadow: 0 5px 12px rgba(29, 78, 216, 0.6);
+
+    }
+
+    .nota {
+      color: #000;
+      /* texto preto */
+    }
+
+    /* Modal fundo e layout */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+
+    }
+
+    /* Quando modal está ativo */
+    .modal-overlay.active {
+      display: flex;
+
+    }
+
+    /* Modal container sobre*/
+    .modal-hidden {
+      display: none;
+
+    }
+
+    #modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      width: 420px;
+      max-width: 90vw;
+      max-height: 70vh;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      outline: none;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      border: 10px solid transparent;
+      box-sizing: border-box;
+      overflow: hidden;
+
+    }
+
+    #modal.show {
+      display: block;
+      opacity: 1;
+      pointer-events: auto;
+      animation: modalFadeIn 0.3s ease forwards;
+
+    }
+
+    @keyframes modalFadeIn {
+      from {
+        transform: translate(-50%, -60%) scale(0.95);
+        opacity: 0;
+      }
+
+      to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-content {
+      position: relative;
+      padding: 20px;
+      max-height: 70vh;
+      overflow-y: auto;
+      /* Scroll interno se passar do max-height */
+      user-select: text;
+      border-radius: 8px;
+
+    }
+
+    /* Botão fechar */
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 28px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s ease;
+
+
+    }
+
+    .close-btn:hover {
+      color: #000;
+
+    }
+
+    /* Fundo desfocado ao redor do modal */
+    #modal.show::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: -1;
+      border-radius: 8px;
+
+    }
+
+    /* Borda para redimensionar só aparece no hover */
+    #modal.show:hover {
+      border-color: rgba(0, 123, 255, 0.3);
+      cursor: default;
+      animation: pulseColor 2s infinite;
+
+    }
+
+    /* Cursor resize só na borda inferior direita */
+    #modal.show {
+      cursor: default;
+
+    }
+
+    #modal.show:hover::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      bottom: 0;
+      right: 0;
+      cursor: se-resize;
+      background: transparent;
+      display: block;
+      z-index: 10;
+      animation: pulseColor 2s infinite;
+    }
+
+    /* Reset básico para evitar overflow horizontal */
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden !important;
+      width: 100vw !important;
+      box-sizing: border-box;
+
+
+    }
+
+    /* Um container base para garantir largura correta */
+    .container-bloqueio-scroll {
+      max-width: 100vw !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box;
+
+
+    }
+
+    /* animação de download*/
+    #start-download {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 9px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+      animation: pulseColor 2s infinite;
+      transition: background-color 0.3s ease;
+    }
+
+    #start-download:hover {
+      background-color: #0056b3;
+
+    }
+
+    @keyframes pulseColor {
+
+      0%,
+      100% {
+        background-color: #007bff;
+        box-shadow: 0 0 8px rgba(0, 123, 255, 0.7);
+      }
+
+      50% {
+        background-color: #3399ff;
+        box-shadow: 0 0 20px rgba(51, 153, 255, 1);
+      }
+    }
+
+    #progress-container {
+      width: 100%;
+      max-width: 300px;
+      height: 25px;
+      background: #ddd;
+      border-radius: 10px;
+      margin-top: 10px;
+      overflow: hidden;
+      position: relative;
+
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: #007bff;
+      border-radius: 10px 0 0 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      user-select: none;
+      transition: width 0.3s ease;
+
+    }
+
+    /*buton de barra de download*/
+    #progress-text {
+      position: relative;
+      z-index: 2;
+    }
+
+    /*anotação*/
+    #note-app {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f0f2f5;
+      min-height: 100vh;
+      border-radius: 20px 20px;
+
+    }
+
+
+    #add-note {
+      padding: 10px 20px;
+      margin-bottom: 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: 0.3s;
+      animation: pulseColor 2s infinite;
+    }
+
+    #add-note:hover {
+      background-color: #45a049;
+    }
+
+    .notes-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+
+    }
+
+    .note {
+      border-radius: 12px;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      cursor: grab;
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
+      width: 250px;
+      min-height: 120px;
+      position: relative;
+
+    }
+
+    /* Fundo aleatório tipo Post-it */
+    .note:nth-child(odd) {
+      background-color: #fff9c4;
+    }
+
+    /* amarelo claro */
+    .note:nth-child(even) {
+      background-color: #c8e6c9;
+    }
+
+    /* verde claro */
+    .note:nth-child(3n) {
+      background-color: #bbdefb;
+    }
+
+    /* azul claro */
+    .note:nth-child(4n) {
+      background-color: #f8bbd0;
+    }
+
+    /* rosa claro */
+
+    .note:hover {
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+      transform: translateY(-3px);
+
+    }
+
+    .note:active {
+      cursor: grabbing;
+      transform: scale(1.03);
+    }
+
+    .note-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .note-header input {
+      font-weight: bold;
+      font-size: 16px;
+      border: none;
+      background: transparent;
+      width: 600%;
+
+    }
+
+    .color-buttons button {
+      margin-left: 5px;
+      border: none;
+      cursor: crosshair;
+      padding: 7.6px 7.9px;
+      border-radius: 5px;
+      transition: 40.2s;
+      flex-direction: column;
+
+    }
+
+    .color-buttons button:hover {
+      transform: scale(1.1);
+    }
+
+    .note-content {
+      margin-top: 10px;
+      min-height: 80px;
+      border-top: 1px solid #ddd;
+      padding-top: 5px;
+      outline: none;
+      color: #000;
+      cursor: auto;
+
+    }
+
+    span {
+      padding: 0 2px;
+      border-radius: 3px;
+      transition: background-color 0.3s;
+    }
+
+    /*modal aviso atualização*/
+
+    /* Overlay desfocado */
+    .ua-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+
+      /* escondido por padrão */
+      justify-content: center;
+      align-items: center;
+      background: rgba(0, 0, 0, .45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      transition: opacity .28s ease;
+      z-index: 3000;
+      /* alto para ficar acima de tudo */
+    }
+
+    /* Estado aberto do overlay */
+    .ua-overlay.is-open {
+      display: flex;
+      opacity: 1;
+    }
+
+    /* Caixa do modal */
+    .ua-modal {
+      --ua-accent: #2196f3;
+      --ua-warning: #ff9800;
+      --ua-bg: #f1f1f1;
+      --ua-text: #222;
+
+      width: 520px;
+      max-width: 92vw;
+      background: var(--ua-bg);
+      color: var(--ua-text);
+      border-radius: 16px;
+      padding: 20px 18px 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+      position: relative;
+
+      transform: scale(.92);
+      opacity: 0;
+      transition: transform .28s ease, opacity .28s ease;
+    }
+
+    /* Animação de entrada */
+    .ua-modal.is-in {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    /* Botão fechar */
+    .ua-close {
+      position: absolute;
+      top: 0.1px;
+      right: 12px;
+      font-size: 24px;
+      line-height: 1;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      color: #333;
+      padding: 6px;
+      border-radius: 10px;
+    }
+
+    .ua-close:hover {
+      background: rgba(0, 0, 0, .06);
+    }
+
+    /* Cabeçalho */
+    .ua-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+
+    }
+
+    .ua-badge {
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--ua-accent), #67b5ff);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(33, 150, 243, .35);
+    }
+
+    .ua-date {
+      font-size: 12px;
+      font-weight: 700;
+      background: #fff;
+      padding: 4px 8px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+      margin: 0 auto;
+    }
+
+    /* Seções */
+    .ua-section {
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+
+    }
+
+    .ua-update {
+      border-left: 6px solid var(--ua-accent);
+      background: #eaf4ff;
+
+
+    }
+
+    .ua-warning {
+      border-left: 6px solid var(--ua-warning);
+      background: #fff6e1;
+      margin-top: 12px;
+
+    }
+
+    /* Barra de aviso */
+
+    .ua-warning-bar {
+      display: flex;
+      justify-content: space-between;
+      font-weight: 800;
+      margin-bottom: 8px;
+
+    }
+
+    /* Título seção */
+    .ua-section-title {
+      margin: 0 0 8px;
+      font-size: 16px;
+
+    }
+
+    /* Lista */
+    .ua-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    .ua-list li {
+      margin: 4px 0;
+    }
+
+    /* Divisor */
+    .ua-divisor {
+      border: none;
+      height: 2px;
+
+      margin: 12px 2px;
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, .15), transparent);
+    }
+
+    /* Acessibilidade: foco visível só dentro do modal */
+    .ua-modal :focus-visible {
+      outline: 2px solid var(--ua-accent);
+      outline-offset: 2px;
+    }
+
+    /* Botão de abrir (exemplo) */
+    #uaOpen {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: var(--ua-accent);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    #uaOpen:hover {
+      filter: brightness(.95);
+    }
+
+    /* Container */
+    #progress-container {
+      width: 350px;
+      height: 28px;
+      background: #e0e0e0;
+      border-radius: 50px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 20px;
+      display: none;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) inset;
+    }
+
+    /* Barra */
+    #progress-bar {
+      width: 0%;
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, #4cafef, #2196f3);
+      transition: width 0.4s ease;
+      position: relative;
+    }
+
+    /* Brilho animado */
+    #progress-bar::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40px;
+      width: 40px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.5);
+      filter: blur(10px);
+      animation: shine 2s infinite linear;
+
+    }
+
+    @keyframes shine {
+      from {
+        left: -40px;
+      }
+
+      to {
+        left: 100%;
+      }
+    }
+
+    /* Texto */
+    #progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      font-weight: bold;
+      color: #333;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+
+    }
+
+    /* Botões */
+    button {
+      margin: 8px;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    #start-download {
+      background: #2196f3;
+      color: #fff;
+
+    }
+
+    #start-download:hover {
+      background: #1976d2;
+    }
+
+    #stop-download {
+      background: #f44336;
+      color: #fff;
+    }
+
+    #stop-download:hover {
+      background: #d32f2f;
+    }
+
+    /* cursor personalizando */
+    #click-cursor {
+      position: fixed;
+      width: 30px;
+      height: 30px;
+      pointer-events: none;
+      border: 2px solid #0051ff;
+      border-radius: 100%;
+      transform: translate(-50%, -50%) scale(0);
+      opacity: 0.8;
+      z-index: 9999;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    #click-cursor.active {
+      transform: translate(-50%, -50%) scale(2);
+      opacity: 0;
+    }
+
+    /* Rodapé fixo */
+    #footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background-color: #222;
+      color: #fff;
+      text-align: center;
+      padding: 10px 0;
+      box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+    }
+
+    /* Abas */
+    .tab-content {
+      padding: 20px;
+      margin-bottom: 50px;
+      /* espaço para o rodapé não cobrir o conteúdo */
+    }
+
+    /* mark */
+    mark {
+      background-color: #4e7de0;
+      border-radius: 20px;
+    }
+  </style>
+
+</head>
+
+<body data-theme="light">
+
+  <div class="container" role="main">
+    <header>
+      <h1><em>Controle de Dívidas</em></h1>
+      <button class="btn-toggle" id="toggle-theme" data-theme="light" aria-label="Alternar tema">
+        Modo Escuro
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 0112.21 3a7 7 0 001.8 13.8 7 7 0 006.2-4z" />
+        </svg>
+      </button>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="Abas do sistema">
+      <button role="tab" aria-selected="true" aria-controls="tab-control" id="tab-control-btn"
+        class="active">Controle</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-calculator" id="tab-calculator-btn">anotação</button>
+      <button role="tab" aria-selected="false" aria-controls="tab-history" id="tab-history-btn">Histórico</button>
+    </nav>
+
+    <section id="tab-control" class="tab-content card" role="tabpanel" aria-labelledby="tab-control-btn">
+      <form id="debt-form" novalidate>
+        <label for="creditor-type">Tipo do Credor:</label>
+        <select id="creditor-type" required aria-required="true" aria-describedby="creditor-type-desc">
+          <option value="" disabled selected>Selecione...</option>
+          <option value="Empresa">Empresa</option>
+          <option value="Pessoa">Pessoa</option>
+        </select>
+        <span id="creditor-type-desc" class="sr-only">Escolha o tipo de credor</span>
+
+        <label for="company-name">Nome da Empresa / Pessoa:</label>
+        <input type="text" id="company-name" placeholder="Digite o nome" required aria-required="true"
+          autocomplete="off" />
+
+        <label for="debt-description">Descrição da Dívida:</label>
+        <textarea id="debt-description" rows="3" placeholder="Detalhe a dívida" required
+          aria-required="true"></textarea>
+
+        <!-------Forma de pagamento------>
+        <label for="debt-value">Valor da Dívida (R$):</label>
+        <input type="number" id="debt-value" placeholder="0.00" min="0.01" step="0.01" required aria-required="true" />
+
+        <label for="payment-method">Forma de pagamento:</label>
+        <select id="payment-method" required aria-required="true" aria-describedby="payment-method-desc">
+          <option value="" disabled selected>Selecione...</option>
+          <option value="nenhum">nenhum</option>
+          <option value="Dinheiro">&#x1F4B5;Dinheiro</option>
+          <option value="Cartão de crédito">&#x1F4B3;Cartão de crédito</option>
+          <option value="Cartão de débito">&#x1F4B3;Cartão de débito</option>
+          <option value="Cartão de crédito">&#x1F4B3;&#x1F4C5;Cartão de crédito parcelado</option>
+          <option value="Cartão de débito">&#x1F4B3;&#x1F4C5;Cartão de débito parcelado</option>
+          <option value="Pix">&#x26A1;Pix</option>
+          <option value="pix/parcelado">&#128176;&#9889;pix/parcelado</option>
+          <option value="Cheque">&#x270D;&#xFE0F;Cheque</option>
+          <option value="Boleto"> &#x1F4C4;Boleto</option>
+        </select>
+
+        <span id="payment-method-desc" class="sr-only">Escolha a forma de pagamento</span>
+        <label for="debt-type">Tipo da Dívida:</label>
+        <select id="debt-type" required aria-required="true" aria-describedby="debt-type-desc">
+          <option value="" disabled selected>Selecione...</option>
+          <option value="Cartão">&#x1F4B3;Cartão</option>
+          <option value="Empréstimo">&#x1F4B0;empréstimo</option>
+          <option value="Cheque">&#x270D;&#xFE0F;Cheque</option>
+          <option value="Financiamento de veículo">&#x1F697;Financiamento de veículo</option>
+          <option value="Cartão de débito parcelado	">&#x1F4B3;&#x1F4C5;Cartão de débito parcelado</option>
+          <option value="Empréstimo pessoal">&#x1F4B0;Empréstimo pessoal</option>
+          <option value="Empréstimo consignado">&#x1F3E6;Empréstimo consignado</option>
+          <option value="Impostos atrasados (IPTU, ISS, ICMS, IR etc.)">&#x1F3DB;&#xFE0F;Impostos atrasados (IPTU, ISS,
+            ICMS, IR etc.)</option>
+          <option value="Multas e penalidades">&#x26A0;&#xFE0F;Multas e penalidades</option>
+          <option value="Conta de luz">&#x1F4A1;Conta de luz</option>
+          <option value="Conta de água">&#x1F4A7;Conta de água</option>
+          <option value="Telefonia fixa/móvel">&#x1F4DE;Telefonia fixa/móvel</option>
+          <option value="Internet / TV a cabo">&#x1F4E1;Internet / TV a cabo</option>
+          <option value="shopee">&#x1F6CD;&#xFE0F;shopee</option>
+          <option value="compras online">&#x1F6D2;&#x1F4BB;compras online</option>
+          <option value="Outro">Outro</option>
+        </select>
+        <span id="debt-type-desc" class="sr-only">Escolha o tipo da dívida</span>
+
+        <label for="issue-date">Data de Emissão:</label>
+        <input type="date" id="issue-date" required aria-required="true" />
+
+        <label for="due-date">Data Prevista para Pagamento:</label>
+        <input type="date" id="due-date" required aria-required="true" />
+
+        <label for="installments">Número de Parcelas:</label>
+        <input type="number" id="installments" min="1" step="1" value="1" required aria-required="true" />
+
+        <label for="installments-paid">Parcelas Pagas:</label>
+        <input type="number" id="installments-paid" min="0" step="1" value="0" required aria-required="true" readonly />
+
+        <label for="debt-paid">
+          <input type="checkbox" id="debt-paid" />
+          Dívida paga?
+        </label>
+
+        <button type="submit" class="submit-btn" aria-label="Adicionar dívida">Adicionar Dívida</button>
+      </form>
+    </section>
+    <!-------anotação--------->
+    <section id="tab-calculator" class="tab-content card" hidden role="tabpanel" aria-labelledby="tab-calculator-btn">
+      <p>
+      <div id="note-app">
+        <button id="add-note">Adicionar Nota</button>
+        <div id="notes-container" class="notes-grid"></div>
+      </div>
+      </p>
+    </section>
+
+    <section id="tab-history" class="tab-content card" hidden role="tabpanel" aria-labelledby="tab-history-btn">
+      <table aria-describedby="history-desc" role="grid">
+        <caption id="history-desc" class="sr-only">Histórico de dívidas adicionadas</caption>
+        <thead>
+          <tr>
+            <th scope="col">Credor</th>
+            <th scope="col">Descrição</th>
+            <th scope="col">Valor</th>
+            <th scope="col">Parcelas</th>
+            <th scope="col">Parcelas Pagas</th>
+            <th scope="col">Status</th>
+            <th scope="col" aria-label="Ações">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="debts-list"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- Modal Detalhes dividas -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title"
+    aria-describedby="modal-description" tabindex="-1">
+    <div class="modal" role="document">
+      <h3 id="modal-title">Detalhes da Dívida</h3>
+      <button class="close-btn" id="modal-close" aria-label="Fechar modal">&times;</button>
+      <dl id="modal-description"></dl>
+    </div>
+  </div>
+
+  <!-- Modal Editar Parcelas -->
+  <div class="modal-overlay" id="modal-edit-installments-overlay" role="dialog" aria-modal="true"
+    aria-labelledby="edit-installments-title" tabindex="-1" style="display:none;">
+    <div class="modal" role="document">
+      <h3 id="edit-installments-title">Editar Parcelas Pagas</h3>
+      <button class="close-btn" id="modal-edit-installments-close" aria-label="Fechar modal">&times;</button>
+      <ul class="installments-list" id="installments-list"></ul>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-container">
+      <div class="footer-about">
+
+
+        <!-- Botão para abrir -->
+        <button id="uaOpen">Sobre a atualização</button>
+
+        <!-- Overlay + Modal (prefixo exclusivo: ua-) -->
+        <div class="ua-overlay" id="uaOverlay" aria-hidden="true">
+          <div class="ua-modal" id="uaModal" role="dialog" aria-modal="true" aria-labelledby="uaTitle" tabindex="-1">
+            <button class="ua-close" id="uaClose" aria-label="Fechar">&times;</button>
+
+            <!-- Bloco Atualização -->
+            <section class="ua-section ua-update">
+              <h3 id="uaTitle" class="ua-section-title">Itens de atualização</h3><span class="ua-date">25/08/2025</span>
+              <ul class="ua-list">
+                <li><strong>agora tem sistema de anotação</strong></li>
+                <li><strong>sistema otimizando</strong></li>
+                <li><strong>interface melhor</strong></li>
+                <li><strong>sistema de parcelas pix e etc</strong></li>
+                <li><strong>sistema para download sobre Termos de Uso e Política de prioridade</strong></li>
+                <li><strong>sistema de modal com as informação</strong></li>
+              </ul>
+            </section>
+
+            <hr class="ua-divisor" />
+            <!-- Bloco Aviso -->
+
+            <section class="ua-section ua-update">
+              <h3 id="uaTitle" class="ua-section-title">⚠️aviso ⚠️</h3><span class="ua-date">25/08/2025</span>
+
+              <section class="ua-section ua-warning">
+                <div class="ua-warning-bar">
+                </div>
+                <ul class="ua-list">
+                  <li><strong>sistema compatível para pc</strong></li>
+                  <li><strong>sistema não compatível para mobile e tablet</strong></li>
+                  <li><strong>qual duvidas sobre o sistema entra em contato com nós</strong></li>
+                  <li><strong>sistema em fase de desenvolvimento</strong></li>
+                  <li><mark><strong>segui nós no instagram e tiktok</strong></mark></li>
+                </ul>
+              </section>
+          </div>
+        </div>
+
+        <!-----cursor personalizando--------->
+        <div id="click-cursor"></div>
+
+        <!--------animação do icone de download-------->
+        <abbr title="Política de Privacidade e Termos de Uso"><button id="start-download">Download</button></abbr>
+        <button id="stop-download">Cancelar</button>
+        <div id="progress-container">
+          <div id="progress-bar"></div>
+          <span id="progress-text">0%</span>
+          <a id="download-link" href="teste.txt" download style="display:none;">Download</a>
+        </div>
+
+        <script src="script.js"></script>
+
+
+        <script src="script.js"></script>
+
+        <a id="download-link" href="Política de Privacidade e Termos de Uso.zip" download="application/zip"
+          style="display:none;"></a>
+
+
+        <!------ICONES E LINKS DE REDE SOCIAL------>
+      </div>
+      <div class="footer-social">
+        <h3>Siga-nos</h3>
+        <div class="social-icons">
+          <!------instagram------>
+          <a href="https://www.instagram.com/teddy_machado007?igsh=MmtjdTF4ZGlqdjVl" aria-label="instagram Systems"
+            target="_blank" rel="noopener">
+            <abbr title="segui nós no instagram ">
+              <img src="https://icons.iconarchive.com/icons/colebemis/feather/32/instagram-icon.png" width="32"
+                height="32" width="32" height="32" alt="instagram" />
+            </abbr>
+          </a>
+          <!------tiktok------>
+          <a href="https://www.tiktok.com/@teddy_machado007?_t=ZM-8yk5UDbdWHY&_r=1" aria-label="tiktok Wagner"
+            target="_blank" rel="noopener">
+            <abbr title="segui nós no tiktok">
+              <img src="https://icons.iconarchive.com/icons/aniket-suvarna/box-logo/32/bxl-tiktok-icon.png" width="32"
+                height="32" width="32" height="32" alt="tiktok" />
+            </abbr>
+          </a>
+          <!----youtube---->
+          <a href="https://youtube.com/@teddy_machado007?si=W5UT1Tu4YDqOQs7Z" aria-label="youtube teddy" target="_blank"
+            rel="noopener">
+            <abbr title="videos completo dos sistemas">
+              <img src="https://icons.iconarchive.com/icons/simpleicons-team/simple/32/youtube-icon.png" width="32"
+                height="32" width="32" height="32" width="32" height="32" alt="youtube" />
+            </abbr>
+          </a>
+
+
+          <p>®Desenvolvido Por Teddy machado todos os direitos reservados 2025</p>
+        </div>
+  </footer>
+
+  <script>
+    (() => {
+      const toggleThemeBtn = document.getElementById('toggle-theme');
+      const body = document.body;
+      const tabs = document.querySelectorAll('nav.tabs button');
+      const tabContents = document.querySelectorAll('.tab-content');
+      const form = document.getElementById('debt-form');
+      const debtsList = document.getElementById('debts-list');
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalClose = document.getElementById('modal-close');
+      const modalDetails = document.getElementById('modal-description');
+      const container = document.querySelector('.container');
+      const footer = document.querySelector('footer.footer');
+
+      // Modal editar parcelas
+      const modalEditInstallmentsOverlay = document.getElementById('modal-edit-installments-overlay');
+      const modalEditInstallmentsClose = document.getElementById('modal-edit-installments-close');
+      const installmentsListElem = document.getElementById('installments-list');
+
+      let debts = JSON.parse(localStorage.getItem('debts')) || [];
+      let lastFocusedElement = null;
+      let currentEditingIndex = null;
+
+      // Atualiza lista histórico
+      function renderDebts() {
+        debtsList.innerHTML = '';
+        debts.forEach((d, i) => {
+          const tr = document.createElement('tr');
+          tr.tabIndex = 0; // acessível com teclado
+          tr.setAttribute('role', 'row');
+          tr.innerHTML = `
+        <td>${d.companyName}</td>
+        <td>${d.description}</td>
+        <td>R$ ${Number(d.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+        <td>${d.installments}x</td>
+        <td>${d.installmentsPaid}</td>
+        <td>${d.paid ? 'Pago' : 'Pendente'}</td>
+        <td>
+          <button aria-label="Ver detalhes da dívida ${d.description}" data-index="${i}" class="btn-details">Detalhes</button>
+          <button aria-label="Editar parcelas da dívida ${d.description}" data-index="${i}" class="btn-edit-installments">Editar Parcelas</button>
+          <button aria-label="Excluir dívida ${d.description}" data-index="${i}" class="btn-delete">Excluir</button>
+        </td>
+      `;
+          debtsList.appendChild(tr);
+        });
+      }
+
+      // Salvar no localStorage
+      function saveDebts() {
+        localStorage.setItem('debts', JSON.stringify(debts));
+      }
+
+      // Alterna tema claro/escuro
+      toggleThemeBtn.addEventListener('click', () => {
+        if (body.dataset.theme === 'light') {
+          body.dataset.theme = 'dark';
+          toggleThemeBtn.textContent = 'Modo Claro';
+          toggleThemeBtn.dataset.theme = 'dark';
+          toggleThemeBtn.innerHTML += `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 0112.21 3a7 7 0 001.8 13.8 7 7 0 006.2-4z"/>
+        </svg>
+      `;
+        } else {
+          body.dataset.theme = 'light';
+          toggleThemeBtn.textContent = 'Modo Escuro';
+          toggleThemeBtn.dataset.theme = 'light';
+          toggleThemeBtn.innerHTML += `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 0112.21 3a7 7 0 001.8 13.8 7 7 0 006.2-4z"/>
+        </svg>
+      `;
+        }
+      });
+
+      // Navegação das abas
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          tabs.forEach(b => {
+            b.classList.remove('active');
+            b.setAttribute('aria-selected', 'false');
+          });
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+
+          tabContents.forEach(content => content.hidden = true);
+
+          const id = btn.getAttribute('aria-controls');
+          document.getElementById(id).hidden = false;
+        });
+      });
+
+      // Validar e adicionar dívida
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        // Captura dados
+        const creditorType = form['creditor-type'].value;
+        const companyName = form['company-name'].value.trim();
+        const description = form['debt-description'].value.trim();
+        const value = parseFloat(form['debt-value'].value);
+        const paymentMethod = form['payment-method'].value;
+        const debtType = form['debt-type'].value;
+        const issueDate = form['issue-date'].value;
+        const dueDate = form['due-date'].value;
+        const installments = parseInt(form['installments'].value);
+        const installmentsPaid = parseInt(form['installments-paid'].value);
+        const paid = form['debt-paid'].checked;
+
+        if (!creditorType || !companyName || !description || isNaN(value) || value <= 0 || !paymentMethod || !debtType
+          || !issueDate || !dueDate || isNaN(installments) || isNaN(installmentsPaid)) {
+          alert('Por favor, preencha todos os campos corretamente.');
+          return;
+        }
+        if (installmentsPaid > installments) {
+          alert('Parcelas pagas não podem ser maiores que o número de parcelas.');
+          return;
+        }
+
+        // Salvar dívida
+        debts.push({
+          creditorType,
+          companyName,
+          description,
+          value,
+          paymentMethod,
+          debtType,
+          issueDate,
+          dueDate,
+          installments,
+          installmentsPaid,
+          paid
+        });
+        saveDebts();
+        renderDebts();
+        form.reset();
+      });
+
+      // Delegação para detalhes, editar parcelas e excluir na tabela
+      debtsList.addEventListener('click', (e) => {
+        const index = Number(e.target.dataset.index);
+        if (e.target.classList.contains('btn-details')) {
+          openDetailModal(index);
+        } else if (e.target.classList.contains('btn-edit-installments')) {
+          openEditInstallmentsModal(index);
+        } else if (e.target.classList.contains('btn-delete')) {
+          if (confirm('Deseja realmente excluir esta dívida?')) {
+            debts.splice(index, 1);
+            saveDebts();
+            renderDebts();
+          }
+        }
+      });
+
+      // Abrir modal detalhes
+      function openDetailModal(index) {
+        const d = debts[index];
+        if (!d) return;
+
+        modalDetails.innerHTML = `
+      <dt>Tipo do Credor:</dt><dd>${d.creditorType}</dd>
+      <dt>Nome da Empresa / Pessoa:</dt><dd>${d.companyName}</dd>
+      <dt>Descrição da Dívida:</dt><dd>${d.description}</dd>
+      <dt>Valor Total:</dt><dd>R$ ${Number(d.value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</dd>
+      <dt>Forma de Pagamento:</dt><dd>${d.paymentMethod}</dd>
+      <dt>Tipo da Dívida:</dt><dd>${d.debtType}</dd>
+      <dt>Data de Emissão:</dt><dd>${d.issueDate}</dd>
+      <dt>Data Prevista para Pagamento:</dt><dd>${d.dueDate}</dd>
+      <dt>Parcelas:</dt><dd>${d.installments}x</dd>
+      <dt>Parcelas Pagas:</dt><dd>${d.installmentsPaid}</dd>
+      <dt>Status:</dt><dd>${d.paid ? 'Pago' : 'Pendente'}</dd>
+    `;
+
+        lastFocusedElement = document.activeElement;
+        modalOverlay.classList.add('active');
+
+        container.classList.add('blur-on-modal');
+        footer.classList.add('blur-on-modal');
+
+        modalClose.focus();
+      }
+
+      // Fechar modal detalhes
+      function closeDetailModal() {
+        modalOverlay.classList.remove('active');
+        container.classList.remove('blur-on-modal');
+        footer.classList.remove('blur-on-modal');
+
+        if (lastFocusedElement) lastFocusedElement.focus();
+      }
+
+      modalClose.addEventListener('click', closeDetailModal);
+      modalOverlay.addEventListener('click', e => {
+        if (e.target === modalOverlay) closeDetailModal();
+      });
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
+          closeDetailModal();
+        }
+      });
+
+      // Abrir modal editar parcelas
+      function openEditInstallmentsModal(index) {
+        currentEditingIndex = index;
+        const d = debts[index];
+        if (!d) return;
+
+        installmentsListElem.innerHTML = '';
+        // Cada parcela vira um checkbox, marcando as já pagas
+        for (let i = 1; i <= d.installments; i++) {
+          const isChecked = i <= d.installmentsPaid;
+          const li = document.createElement('li');
+          li.innerHTML = `
+        <input type="checkbox" id="installment-${i}" data-installment="${i}" ${isChecked ? 'checked' : ''} />
+        <label for="installment-${i}">Parcela ${i}</label>
+      `;
+          installmentsListElem.appendChild(li);
+        }
+
+        lastFocusedElement = document.activeElement;
+        modalEditInstallmentsOverlay.style.display = 'flex';
+
+        container.classList.add('blur-on-modal');
+        footer.classList.add('blur-on-modal');
+
+        modalEditInstallmentsClose.focus();
+      }
+
+      // Fechar modal editar parcelas
+      function closeEditInstallmentsModal() {
+        modalEditInstallmentsOverlay.style.display = 'none';
+        container.classList.remove('blur-on-modal');
+        footer.classList.remove('blur-on-modal');
+
+        if (lastFocusedElement) lastFocusedElement.focus();
+        currentEditingIndex = null;
+      }
+
+      modalEditInstallmentsClose.addEventListener('click', closeEditInstallmentsModal);
+      modalEditInstallmentsOverlay.addEventListener('click', e => {
+        if (e.target === modalEditInstallmentsOverlay) closeEditInstallmentsModal();
+      });
+      window.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && modalEditInstallmentsOverlay.style.display === 'flex') {
+          closeEditInstallmentsModal();
+        }
+      });
+
+      // Atualizar parcelas pagas ao clicar nos checkboxes dentro do modal editar parcelas
+      installmentsListElem.addEventListener('change', e => {
+        if (e.target && e.target.type === 'checkbox' && currentEditingIndex !== null) {
+          const d = debts[currentEditingIndex];
+          if (!d) return;
+
+          // Contar quantas parcelas estão marcadas
+          const checkedCount = installmentsListElem.querySelectorAll('input[type="checkbox"]:checked').length;
+
+          // Atualiza parcelas pagas
+          d.installmentsPaid = checkedCount;
+
+          // Atualiza status dívida paga
+          d.paid = (checkedCount === d.installments);
+
+          // Atualiza campo readonly no formulário (caso aberto)
+          document.getElementById('installments-paid').value = d.installmentsPaid;
+
+          saveDebts();
+          renderDebts();
+        }
+      });
+
+      // Inicializa a lista na carga
+      renderDebts();
+
+    })();
+
+    // detecta a largura do dispositivo e reforça o bloqueio
+    (function () {
+      function bloquearScrollHorizontal() {
+        // Aplica direto no style inline para ter prioridade
+        document.documentElement.style.overflowX = 'hidden';
+        document.body.style.overflowX = 'hidden';
+        document.documentElement.style.width = '100vw';
+        document.body.style.width = '100vw';
+      }
+
+      // Bloqueia scroll na carga da página
+      window.addEventListener('load', bloquearScrollHorizontal);
+
+      // Também bloqueia se a janela mudar de tamanho (ex: rotacionar celular)
+      window.addEventListener('resize', bloquearScrollHorizontal);
+
+      // Bloqueia imediatamente caso seja executado após carregamento
+      bloquearScrollHorizontal();
+    })();
+    //animação de icone de download
+    const startBtn = document.getElementById('start-download');
+    const cancelBtn = document.getElementById('stop-download');
+    const progressContainer = document.getElementById('progress-container');
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+    const downloadLink = document.getElementById('download-link');
+
+    let progress = 0;
+    let interval = null;
+
+    startBtn.addEventListener('click', () => {
+      progress = 0;
+      progressContainer.style.display = 'block';
+      progressBar.style.width = '0%';
+      progressText.textContent = '0%';
+      startBtn.disabled = true;
+
+      interval = setInterval(() => {
+        progress += 5;
+        if (progress > 100) progress = 100;
+
+        progressBar.style.width = progress + '%';
+        progressText.textContent = progress + '%';
+
+        if (progress >= 100) {
+          clearInterval(interval);
+          downloadLink.click();
+          startBtn.disabled = false;
+
+          setTimeout(() => {
+            progressContainer.style.display = 'none';
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+          }, 1500);
+        }
+      }, 100);
+    });
+
+    // Cancelar Download
+    cancelBtn.addEventListener('click', () => {
+      clearInterval(interval);
+      progress = 0;
+      progressBar.style.width = '0%';
+      progressText.textContent = '0%';
+      progressContainer.style.display = 'none';
+      startBtn.disabled = false;
+    });
+
+    //anotação
+    const addNoteBtn = document.getElementById("add-note");
+    const notesContainer = document.getElementById("notes-container");
+
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+
+    function saveNotes() {
+      const noteData = Array.from(notesContainer.children).map((note, index) => ({
+        title: note.querySelector(".note-title").value,
+        content: note.querySelector(".note-content").innerHTML,
+        order: index
+      }));
+      localStorage.setItem("notes", JSON.stringify(noteData));
+    }
+
+    function createNote(title = "Nova Nota", content = "") {
+      const note = document.createElement("div");
+      note.classList.add("note");
+
+      note.innerHTML = `
+        <div class="note-header">
+            <input type="text" value="${title}" class="note-title"/>
+            <div class="color-buttons">
+                <button class="rename">Renomear</button>
+                <button class="color" data-color="yellow" style="background:yellow"></button>
+                <button class="color" data-color="lightgreen" style="background:lightgreen"></button>
+                <button class="color" data-color="lightblue" style="background:lightblue"></button>
+                <button class="color" data-color="pink" style="background:pink"></button>
+                <button class="delete" style="background:red; color:white">X</button>
+            </div>
+        </div>
+        <div class="note-content" contenteditable="true">${content}</div>
+    `;
+
+      const titleInput = note.querySelector(".note-title");
+      const contentDiv = note.querySelector(".note-content");
+
+      titleInput.addEventListener("input", saveNotes);
+      contentDiv.addEventListener("input", saveNotes);
+
+      note.querySelector(".rename").addEventListener("click", () => titleInput.focus());
+
+      note.querySelectorAll(".color").forEach(btn => {
+        btn.addEventListener("click", () => highlightSelection(contentDiv, btn.dataset.color));
+      });
+
+      note.querySelector(".delete").addEventListener("click", () => {
+        note.remove();
+        saveNotes();
+      });
+
+      // Drag & Drop
+      note.addEventListener("dragstart", e => {
+        e.dataTransfer.setData("text/plain", null);
+        note.classList.add("dragging");
+      });
+      note.addEventListener("dragend", () => {
+        note.classList.remove("dragging");
+        saveNotes();
+      });
+
+      notesContainer.appendChild(note);
+      return note;
+    }
+
+    function highlightSelection(container, color) {
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      const range = selection.getRangeAt(0);
+      if (!container.contains(range.commonAncestorContainer) || range.collapsed) return;
+
+      const span = document.createElement("span");
+      span.style.backgroundColor = color;
+      span.textContent = range.toString();
+
+      range.deleteContents();
+      range.insertNode(span);
+      selection.removeAllRanges();
+      saveNotes();
+    }
+
+    // Renderiza notas salvas
+    notes.sort((a, b) => a.order - b.order).forEach(n => createNote(n.title, n.content));
+
+    addNoteBtn.addEventListener("click", () => createNote());
+
+    notesContainer.addEventListener("dragover", e => {
+      e.preventDefault();
+      const dragging = document.querySelector(".dragging");
+      const afterElement = getDragAfterElement(notesContainer, e.clientY);
+      if (afterElement == null) {
+        notesContainer.appendChild(dragging);
+      } else {
+        notesContainer.insertBefore(dragging, afterElement);
+      }
+    });
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll(".note:not(.dragging)")];
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+    //janela de aviso 
+    // Elementos
+    const uaOpen = document.getElementById('uaOpen');
+    const uaOverlay = document.getElementById('uaOverlay');
+    const uaModal = document.getElementById('uaModal');
+    const uaClose = document.getElementById('uaClose');
+
+    let uaLastActive = null;
+
+    // Foco ciclável dentro do modal
+    function trapFocus(container, e) {
+      if (e.key !== 'Tab') return;
+      const focusables = container.querySelectorAll(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+      );
+      if (!focusables.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        last.focus();
+        e.preventDefault();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        first.focus();
+        e.preventDefault();
+      }
+    }
+
+    // Abrir
+    function uaOpenModal() {
+      uaLastActive = document.activeElement;
+      uaOverlay.classList.add('is-open');
+      // animação do box
+      requestAnimationFrame(() => uaModal.classList.add('is-in'));
+      // trava scroll da página, se existir body
+      try { document.body.style.overflow = 'hidden'; } catch (e) { }
+      // foco inicial
+      setTimeout(() => uaClose.focus(), 10);
+
+      uaOverlay.addEventListener('keydown', onKeydown);
+    }
+
+    // Fechar
+    function uaCloseModal() {
+      uaModal.classList.remove('is-in');
+      setTimeout(() => {
+        uaOverlay.classList.remove('is-open');
+        try { document.body.style.overflow = ''; } catch (e) { }
+        if (uaLastActive) uaLastActive.focus();
+      }, 280);
+      uaOverlay.removeEventListener('keydown', onKeydown);
+    }
+
+    // Handlers
+    function onKeydown(e) {
+      if (e.key === 'Escape') { uaCloseModal(); return; }
+      trapFocus(uaModal, e);
+    }
+
+    // Eventos
+    uaOpen.addEventListener('click', uaOpenModal);
+    uaClose.addEventListener('click', uaCloseModal);
+    uaOverlay.addEventListener('click', (e) => {
+      if (e.target === uaOverlay) uaCloseModal(); // clique fora fecha
+    });
+    // cursor personalizando
+    const clickCursor = document.getElementById('click-cursor');
+
+    document.addEventListener('mousedown', e => {
+      // Posicionar o cursor animado onde clicou
+      clickCursor.style.left = e.clientX + 'px';
+      clickCursor.style.top = e.clientY + 'px';
+
+      // Ativar a animação
+      clickCursor.classList.add('active');
+
+      // Remover a classe depois da animação
+      setTimeout(() => clickCursor.classList.remove('active'), 300);
+    });
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const target = button.dataset.tab;
+
+        tabContents.forEach(tab => {
+          tab.style.display = (tab.id === target) ? 'block' : 'none';
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
